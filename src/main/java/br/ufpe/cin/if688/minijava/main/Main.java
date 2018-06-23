@@ -5,6 +5,8 @@ import br.ufpe.cin.if688.minijava.antlr.MiniJavaParser;
 import br.ufpe.cin.if688.minijava.ast.*;
 import br.ufpe.cin.if688.minijava.visitor.MJVisitor;
 import br.ufpe.cin.if688.minijava.visitor.PrettyPrintVisitor;
+import br.ufpe.cin.if688.minijava.visitor.BuildSymbolTableVisitor;
+import br.ufpe.cin.if688.minijava.visitor.TypeCheckVisitor;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -58,15 +60,20 @@ public class Main {
 
 		//change test program here
         try {
-            InputStream stream = new FileInputStream("src/main/java/test/BubbleSort.java");
+            InputStream stream = new FileInputStream("src/main/java/test/BubbleSort.javat");
             ANTLRInputStream input = new ANTLRInputStream(stream);
             MiniJavaLexer lexer = new MiniJavaLexer(input);
             CommonTokenStream token = new CommonTokenStream(lexer);
 
-            Program p = (Program) new MJVisitor().visit(new MiniJavaParser(token).goal());
-
+            Program prog = (Program) new MJVisitor().visit(new MiniJavaParser(token).goal());
+//			Program prog = new Program(main, cdl);
+			BuildSymbolTableVisitor stVis = new BuildSymbolTableVisitor();
+			prog.accept(stVis);
+			System.out.println("--------------------------------");
+			prog.accept(new TypeCheckVisitor(stVis.getSymbolTable()));
+			System.out.println("--------------------------------");
             PrettyPrintVisitor ppv = new PrettyPrintVisitor();
-            ppv.visit(p);
+            ppv.visit(prog);
         } catch (Exception e) {
             e.printStackTrace();
         }
